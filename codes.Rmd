@@ -1,0 +1,66 @@
+---
+title: "Ice_cores"
+author: "Sujan Bhattarai"
+date: "2023-08-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load the packages
+```{r}
+library(here)
+library(tidyverse)
+```
+Read the data
+```{r}
+madison <- read_csv(here("data", "knb-lter-ntl.33.35", "ntl33_v7.csv")) %>% 
+  filter(ice_duration != -999)
+```
+Plot the data
+```{r}
+madison %>% 
+  ggplot(aes(as.factor(lakeid), ice_duration ))+
+  geom_jitter()+
+  geom_violin(aes(as.factor(lakeid)), alpha= 0.1)
+```
+Find the mean ice cover duration in Madison Lake Area by year (i.e., you’ll only be grouping by the year variable here). Understanding check: what are you finding the mean of here? Why are there multiple observations for each year?)
+```{r}
+ice_mean <- madison  %>% 
+  group_by(year4) %>% 
+  summarize(mean_ice_cover= mean(ice_duration)) %>%
+  ungroup()
+
+  ggplot(ice_mean, aes(year4, mean_ice_cover))+
+  geom_line() + theme_bw()+ geom_smooth()
+```
+```{r}
+temp_madison <- read_csv(here("data", "ntl20_v6.csv"))
+```
+```{r}
+mean_temp <- temp_madison %>% 
+  group_by(year4) %>% 
+  summarize(mean= mean(max_air_temp_adjusted))
+```
+
+```{r}
+ggplot(mean_temp, aes(year4, mean))+
+  geom_line()
+```
+```{r}
+joined_data <- left_join(ice_mean, mean_temp)
+```
+```{r}
+ggplot(joined_data, aes(mean, mean_ice_cover))+
+  geom_point()+xlab("Mean air temperature")
+```
+```{r}
+iceoff <- ice_core %>% 
+  filter(year4 > 1970) %>% 
+  mutate(year1 = as.Date(year4, origin = "1970-01-01")) %>% 
+  mutate(year = lubridate::year(year1)) %>% 
+  ggplot(aes(ice_off)) + stat_count()
+```
+
